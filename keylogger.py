@@ -1,4 +1,4 @@
-from pynput.keyboard import Key,Listener
+from pynput.keyboard import Key,Listener,KeyCode
 import time
 
 ct=time.localtime()
@@ -6,7 +6,7 @@ ct=time.localtime()
 f=open("keylog.txt","a+")
 f.write("====================================\nSESSION SUMMARY {}:{}:{} {}/{}/{}\n------------------------------------\n".format(ct.tm_hour,ct.tm_min,ct.tm_sec,ct.tm_mday,ct.tm_mon,ct.tm_year))
 
-c=[{Key.ctrl,Key.esc}]
+current=set()
 c=0
 b=0
 start=time.time()
@@ -23,7 +23,7 @@ d={Key.esc:"[ESC]",Key.backspace:"[BACKSPACE]",Key.enter:"[ENTER]",Key.tab:"[TAB
    Key.f21:"[F21]",Key.f22:"[F22]",Key.f23:"[F23]",Key.f24:"[F24]",Key.menu:"[MENU]",
    Key.media_volume_mute:"[VOLMUTE]",Key.media_volume_down:"[VOLDOWN]",Key.media_volume_up:"[VOLUP]",
    Key.media_previous:"[PREVIOUS]",Key.media_next:"[NEXT]",Key.media_play_pause:"[PLAY/PAUSE]",Key.media_stop:"[STOP]",
-   96:"'0'",97:"'1'",98:"'2'",99:"'3'",100:"'4'",101:"'5'",102:"'6'",103:"'7'",104:"'8'",105:"'9'",255:"[BRIGHTNESSCTRL]"}
+   74:"'j'",96:"'0'",97:"'1'",98:"'2'",99:"'3'",100:"'4'",101:"'5'",102:"'6'",103:"'7'",104:"'8'",105:"'9'",255:"[BRIGHTNESSCTRL]"}
 l=[]
 
 def convert(sec):
@@ -35,36 +35,37 @@ def convert(sec):
 def show(key):
     global c
     c=c+1
+    current.add(listener.canonical(key))
+    if Key.ctrl in current and Key.alt in current and KeyCode.from_char("j") in current:
+        l.append("{:02d}:{:02d}:{:.2f}; 'j'\n".format(*convert(time.time()-start)))
+        return False
     if key in d:
         if key==Key.backspace:
             global b
             b=b+1
-            l.append("{:02d}:{:02d}:{}; {}\n".format(*convert(time.time()-start),d[key]))
-            print("{:02d}:{:02d}:{}; {}".format(*convert(time.time()-start),d[key]))
+            l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key]))
+            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
         else:
-            l.append("{:02d}:{:02d}:{}; {}\n".format(*convert(time.time()-start),d[key]))
-            print("{:02d}:{:02d}:{}; {}".format(*convert(time.time()-start),d[key]))
+            l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key]))
+            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
     elif hasattr(key,"vk") and key.vk in d:
-        l.append("{:02d}:{:02d}:{}; {}\n".format(*convert(time.time()-start),d[key.vk]))
-        print("{:02d}:{:02d}:{}; {}".format(*convert(time.time()-start),d[key.vk]))
+        l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key.vk]))
+        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key.vk]))
     else:
-        l.append("{:02d}:{:02d}:{}; {}\n".format(*convert(time.time()-start),key))
-        print("{:02d}:{:02d}:{}; {}".format(*convert(time.time()-start),key))
+        l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),key))
+        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),key))
 
 def releasing(key):
-##    global c
-##    c=c+1
-    if key==Key.esc:
-        print("Key released: [ESC]")
-        return False
+    current.discard(listener.canonical(key))
+    
 with Listener(on_press=show,on_release=releasing) as listener:
     listener.join()
 
 print("No of keystrokes:",c)
-print("Backspace Rate; {}\n".format(b*100/c))
-f.write("Total Runtime; {}:{}:{}\n".format(*convert(time.time()-start)))
+print("Backspace Rate; {:.2f}\n".format(b*100/c))
+f.write("Total Runtime; {:02d}:{:02d}:{:.2f}\n".format(*convert(time.time()-start)))
 f.write("Total Keystrokes; {}\n".format(c))
-f.write("Backspace Rate; {}\n".format(b*100/c))
+f.write("Backspace Rate; {:.2f}\n".format(b*100/c))
 f.write("------------------------------------\n")
 f.writelines(l)
 f.write("====================================\n")
