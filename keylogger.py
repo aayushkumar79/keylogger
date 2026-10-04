@@ -3,9 +3,10 @@ import time
 
 ct=time.localtime()
 
-f=open("keylog.txt","a+")
+f=open("keystrokes.log","a+",encoding="utf-8")
 f.write("====================================\nSESSION SUMMARY {}:{}:{} {}/{}/{}\n------------------------------------\n".format(ct.tm_hour,ct.tm_min,ct.tm_sec,ct.tm_mday,ct.tm_mon,ct.tm_year))
 
+count={}
 current=set()
 c=0
 b=0
@@ -37,23 +38,43 @@ def show(key):
     c=c+1
     current.add(listener.canonical(key))
     if Key.ctrl in current and Key.alt in current and KeyCode.from_char("j") in current:
+        if "'j'" in count:
+            count["'j'"]+=1
+        else:
+            count["'j'"]=1
         l.append("{:02d}:{:02d}:{:.2f}; 'j'\n".format(*convert(time.time()-start)))
         return False
     if key in d:
         if key==Key.backspace:
+            if d[key] in count:
+                count[d[key]]+=1
+            else:
+                count[d[key]]=1
             global b
             b=b+1
             l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key]))
-            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
+##            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
         else:
+            if d[key] in count:
+                count[d[key]]+=1
+            else:
+                count[d[key]]=1
             l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key]))
-            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
+##            print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key]))
     elif hasattr(key,"vk") and key.vk in d:
+        if d[key.vk] in count:
+            count[d[key.vk]]+=1
+        else:
+            count[d[key.vk]]=1
         l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),d[key.vk]))
-        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key.vk]))
+##        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),d[key.vk]))
     else:
+        if key in count:
+            count[key]+=1
+        else:
+            count[key]=1
         l.append("{:02d}:{:02d}:{:.2f}; {}\n".format(*convert(time.time()-start),key))
-        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),key))
+##        print("{:02d}:{:02d}:{:.2f}; {}".format(*convert(time.time()-start),key))
 
 def releasing(key):
     current.discard(listener.canonical(key))
@@ -61,11 +82,17 @@ def releasing(key):
 with Listener(on_press=show,on_release=releasing) as listener:
     listener.join()
 
-print("No of keystrokes:",c)
-print("Backspace Rate; {:.2f}\n".format(b*100/c))
+##print("No of keystrokes:",c)
+##print("Backspace Rate; {:.2f}\n".format(b*100/c))
+##print(dict(sorted(count.items(),key=lambda item:item[1],reverse=True)[:5]))
+sortl=dict(sorted(count.items(),key=lambda item:item[1],reverse=True)[:5])
+lines=[f"| {str(key):<17} | {value:<6} |\n" for key,value in sortl.items()]
 f.write("Total Runtime; {:02d}:{:02d}:{:.2f}\n".format(*convert(time.time()-start)))
 f.write("Total Keystrokes; {}\n".format(c))
 f.write("Backspace Rate; {:.2f}\n".format(b*100/c))
+f.write("+----------------------------+\n| Top 5 Most Pressed Keys;   |\n+-------------------+--------+\n")
+f.writelines(lines)
+f.write("+-------------------+--------+\n")
 f.write("------------------------------------\n")
 f.writelines(l)
 f.write("====================================\n")
