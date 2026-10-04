@@ -4,7 +4,7 @@ from datetime import datetime
 
 ct=time.localtime()
 
-f=open("keylogs.txt","a+",encoding="utf-8")
+f=open("keystrokes.log","a+",encoding="utf-8")
 f.write("====================================\nSESSION SUMMARY {}/{}/{} {}:{}:{}\n------------------------------------\n".format(ct.tm_mday,ct.tm_mon,ct.tm_year,ct.tm_hour,ct.tm_min,ct.tm_sec))
 
 count={}
