@@ -15,4 +15,5 @@ The program listens for individual keyboard events, processes each key press, ha
 Example Output:  
 <img width="150" height="200" alt="image" src="https://github.com/user-attachments/assets/6778c489-a9c0-496c-815b-67311065ed9a" />
 
-Note: This program does not store hotkeys, as I could not find a solution for it other than hardcoding all of it. Although it does store them individually.
+Usage:  
+There are two versions with different approaches. This program does not store hotkeys, as I could not find a solution for it other than hardcoding all of it. Although it does store them individually. To automatically run the file on opening, save it as `.pyw`
