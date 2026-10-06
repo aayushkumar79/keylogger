@@ -24,6 +24,9 @@ def convert(sec):
     sec=round(sec%60,2)
     return hours,mins,sec
 
+def curt():
+    return time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2]
+
 def show(key):
     global c,b
     c=c+1
@@ -33,26 +36,26 @@ def show(key):
             count["j"]+=1
         else:
             count["j"]=1
-        l.append("{:02d}:{:02d}:{:02d}.{}; j\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2]))
+        l.append("{:02d}:{:02d}:{:02d}.{}; j\n".format(*curt()))
         return False
     if hasattr(key,"char") and key.char is not None:
         if key.char in count:
             count[key.char]+=1
         else:
             count[key.char]=1
-        l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2],key.char))
+        l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(*curt(),key.char))
     elif key in d:
             if d[key]in count:
                 count[d[key]]+=1
             else:
                 count[d[key]]=1
-            l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2],d[key]))
+            l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(*curt(),d[key]))
     elif hasattr(key,"vk") and key.vk in d:
         if d[key.vk] in count:
             count[d[key.vk]]+=1
         else:
             count[d[key.vk]]=1
-        l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2],d[key.vk]))
+        l.append("{:02d}:{:02d}:{:02d}.{}; {}\n".format(*curt(),d[key.vk]))
     else:
         if key==Key.backspace:
             if "[BACKSPACE]" in count:
@@ -60,12 +63,12 @@ def show(key):
             else:
                 count["[BACKSPACE]"]=1
             b=b+1
-            l.append("{:02d}:{:02d}:{:02d}.{}; [BACKSPACE]\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2]))
+            l.append("{:02d}:{:02d}:{:02d}.{}; [BACKSPACE]\n".format(*curt()))
         if "[{}]".format(str(key).split(".")[1].split("_")[0].upper()) in count:
             count["[{}]".format(str(key).split(".")[1].split("_")[0].upper())]+=1
         else:
             count["[{}]".format(str(key).split(".")[1].split("_")[0].upper())]=1
-        l.append("{:02d}:{:02d}:{:02d}.{}; [{}]\n".format(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec,str(datetime.now().microsecond)[:2],str(key).split(".")[1].split("_")[0].upper()))
+        l.append("{:02d}:{:02d}:{:02d}.{}; [{}]\n".format(*curt(),str(key).split(".")[1].split("_")[0].upper()))
     
 def release(key):
     current.discard(listener.canonical(key))
@@ -76,7 +79,6 @@ def release(key):
 with Listener(on_press=show,on_release=release) as listener:
     listener.join()
 
-print(dict(sorted(count.items(),key=lambda item:item[1],reverse=True)[:5]))
 sortl=dict(sorted(count.items(),key=lambda item:item[1],reverse=True)[:5])
 lines=[f"| {str(key):<17} | {value:<6} |\n" for key,value in sortl.items()]
 f.write("Total Runtime; {:02d}:{:02d}:{:.2f}\n".format(*convert(time.time()-start)))
